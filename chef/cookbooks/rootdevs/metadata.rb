@@ -3,7 +3,7 @@ maintainer 'Manoj Chowdary Vattikuti'
 maintainer_email 'manoj.awsdeveloper@gmail.com'
 license 'All Rights Reserved'
 description 'Installs/Configures rootdevs'
-version '1.1.1'
+version '1.1.2'
 chef_version '>= 14.0'
 
 # The `issues_url` points to the location where issues for this cookbook are
