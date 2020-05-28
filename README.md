@@ -44,7 +44,7 @@ ansible - folder contains server provisioning code through ansible.
 
 ## Authors
 
-* **Manoj Vattikuti** - *Initial work* 
+* **Manoj Vattikuti** - *Initial work*  - <manoj.awsdeveloper@gmail.com>
 
 ## License
 
