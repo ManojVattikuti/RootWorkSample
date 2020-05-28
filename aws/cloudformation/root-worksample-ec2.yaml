@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Root Work Sample instances
+
+# ------------------------------------------------------------------------------
+# Parameters
+# ------------------------------------------------------------------------------
+Parameters:
+
+  Environment:
+    Type: String
+    Description: Environment to deploy in.
+    AllowedValues:
+    - development
+    - staging
+    - production
+    Default: development
+
+  AMI:
+    Type: AWS::EC2::Image::Id
+    Description: Amazon machine image to use.
+    Default: ami-039a49e70ea773ffc # ubuntu-16.04
+
+  InstanceType:
+    Type: String
+    Description: Instance type.
+    AllowedValues:
+    - c5.large
+    - c5.xlarge
+    - c5.2xlarge
+    - c5.4xlarge
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    - m5.large
+    - m5.xlarge
+    - m5.2xlarge
+    - m5.4xlarge
+    - t2.medium
+    - t2.small
+    - t2.large
+    - t2.xlarge
+    - t3.medium
+    - t3.large
+    - t3.xlarge
+    - t3a.medium
+    - t3a.large
+    - t3a.xlarge
+    - t3a.2xlarge
+    Default: t2.small
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 key pair name.
+    Default: ec2-key
+
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: Security groups to use.
+
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnets where instances should be deployed.
+
+##############################################################################
+Mappings:
+  myinstance: ### All settings in this map must be correct in order for template to succeed
+    instancemap:
+      ##############################################################################
+      Instance1Hostname:           'rootdevs'                              ## Follow hostnaming standards            (null if no instance)
+      Instance1Data1Size:          20                                             ## GB - EBS mounted  (0 for none)
+      Instance1AvailabilityZone:   'us-east-1a'                                          ## 
+      ##############################################################################
+
+
+# ------------------------------------------------------------------------------
+# Resources
+# ------------------------------------------------------------------------------
+Resources:
+  ### ### ###
+  ec2Instance1Root:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      NetworkInterfaces:
+        - DeleteOnTermination: true
+          DeviceIndex: 0
+          SubnetId: !Ref Subnets
+          GroupSet: !Ref SecurityGroups
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref InstanceProfile
+      DisableApiTermination: False
+      ImageId: !Ref AMI
+  ec2Instance1RootDisk1:
+    Type: "AWS::EC2::Volume"
+    Properties:
+      Size: !FindInMap ['myinstance','instancemap','Instance1Data1Size']
+      VolumeType: gp2
+      Encrypted: true
+      AvailabilityZone:  !FindInMap ['myinstance','instancemap','Instance1AvailabilityZone']
+  ec2Instance1RootDisk1Attach:
+    Type: AWS::EC2::VolumeAttachment
+    Properties: {Device: /dev/xvdb, InstanceId: !Ref ec2Instance1Root, VolumeId: !Ref ec2Instance1RootDisk1}
+
+  # ----------------------------------------------------------------------------
+  # Instance Profile and Role
+  # ----------------------------------------------------------------------------
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles: [!Ref Role]
+
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: ['sts:AssumeRole']
+          Principal:
+            Service: ['ec2.amazonaws.com']
+      Path: /
+      Policies:
+      - PolicyName: AWSPermissions
+        PolicyDocument:
+          Statement:
+          # Allow read actions in S3 buckets
+          - Sid: S3ReadWrite
+            Effect: Allow
+            Action:
+            - s3:List*
+            - s3:Get*
+            Resource:
+            - arn:aws:s3:::Root-ops
+            - arn:aws:s3:::Root-ops/*
+          # Allow pull images from ECR repositories
+          - Sid: ECR
+            Effect: Allow
+            Action:
+            - ecr:BatchCheckLayerAvailability
+            - ecr:BatchGetImage
+            - ecr:GetAuthorizationToken
+            - ecr:GetDownloadUrlForLayer
+            Resource: '*'

@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Common Security Groups
+
+# ------------------------------------------------------------------------------
+# Parameters
+# ------------------------------------------------------------------------------
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID.
+
+  NameSuffix:
+    Type: String
+    Description: Security group name suffix (e.g. -dev).
+    Default: ''
+
+# ------------------------------------------------------------------------------
+# Resources
+# ------------------------------------------------------------------------------
+Resources:
+
+  InternalTraffic:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub internal-traffic${NameSuffix}
+      GroupDescription: Allow all internal traffic within VPC
+      SecurityGroupIngress:
+      - { CidrIp: 10.0.0.0/8,    FromPort: -1, ToPort: -1, IpProtocol: -1, Description: All internal traffic }
+      - { CidrIp: 172.16.0.0/12, FromPort: -1, ToPort: -1, IpProtocol: -1, Description: All internal traffic }
+      Tags:
+      - { Key: Name, Value: !Sub "internal-traffic${NameSuffix}" }
+      VpcId: !Sub ${VPC}
+
+  PublicWeb:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub public-web${NameSuffix}
+      GroupDescription: Allow public access to HTTP and HTTPS
+      SecurityGroupIngress:
+      - { CidrIp: 0.0.0.0/0, FromPort:  -1, ToPort:  -1, IpProtocol: icmp, Description: All ICMP     }
+      - { CidrIp: 0.0.0.0/0, FromPort:  80, ToPort:  80, IpProtocol:  tcp, Description: Public HTTP  }
+      - { CidrIp: 0.0.0.0/0, FromPort: 4567, ToPort: 4567, IpProtocol:  tcp, Description: Public Docker Application }
+      Tags:
+      - { Key: Name, Value: !Sub "public-web${NameSuffix}" }
+      VpcId: !Sub ${VPC}
