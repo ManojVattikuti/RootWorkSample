@@ -19,4 +19,5 @@
     repo 'rootdevs/reliability-interview-container'
     tag '201805'
     port '4567:4567'
+    restart_policy 'on-failure'
   end
