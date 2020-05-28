@@ -3,7 +3,7 @@ maintainer 'Manoj Chowdary Vattikuti'
 maintainer_email 'manoj.awsdeveloper@gmail.com'
 license 'All Rights Reserved'
 description 'Installs/Configures rootdevs'
-version '0.1.2'
+version '1.1.1'
 chef_version '>= 14.0'
 
 # The `issues_url` points to the location where issues for this cookbook are
@@ -18,5 +18,4 @@ chef_version '>= 14.0'
 #
 # source_url 'https://github.com/<insert_org_here>/rootdevs'
 
-depends 'docker'
-cookbook 'docker', '~> 6.0.1'
+depends 'docker', '~> 6.0.1'
